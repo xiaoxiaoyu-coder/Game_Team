@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>战队详情</title>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; background: #f5f7fa; }
+        h1 { color: #2c3e50; }
+        h2 { color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 6px; }
+        .card { background: #fff; border-radius: 8px; padding: 12px 16px; margin: 8px 0; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+        .card b { color: #2980b9; }
+        .back { color: #2980b9; text-decoration: none; }
+        .back:hover { text-decoration: underline; }
+        #status { color: #e74c3c; }
+    </style>
+</head>
+<body>
+    <p><a class="back" id="back-link" href="index.html">&larr; 返回上一页</a></p>
+    <h1 id="team-name">加载中...</h1>
+    <p id="team-desc"></p>
+    <p id="status"></p>
+
+    <h2>选手列表</h2>
+    <div id="members"></div>
+
+    <script>
+        const API = 'http://localhost:8080';
+        // 从网址 ?id=1&match=1 中取出战队 ID 和来源比赛 ID
+        const params = new URLSearchParams(location.search);
+        const teamId = params.get('id');
+        const matchId = params.get('match');
+
+        // 返回按钮优先回到所属比赛页面
+        if (matchId) {
+            const back = document.getElementById('back-link');
+            back.href = 'match.html?id=' + matchId;
+            back.innerHTML = '&larr; 返回比赛详情';
+        }
+
+        async function loadTeam() {
+            try {
+                const res = await fetch(API + '/api/team/' + teamId + '/members');
+                const team = await res.json();
+
+                if (team.error) {
+                    document.getElementById('status').textContent = team.error;
+                    document.getElementById('team-name').textContent = '出错了';
+                    return;
+                }
+
+                document.getElementById('team-name').textContent = '#' + team.id + ' ' + team.name;
+                document.getElementById('team-desc').textContent = team.description;
+                document.title = team.name + ' - 战队详情';
+
+                document.getElementById('members').innerHTML = team.members.map(m =>
+                    `<div class="card"><b>#${m.id} ${m.name}</b> — ${m.description}</div>`
+                ).join('') || '<p>该战队暂无选手</p>';
+            } catch (e) {
+                document.getElementById('status').textContent =
+                    '连接后端失败，请确认 IDEA 中的 WebServer 已运行 (http://localhost:8080)';
+            }
+        }
+
+        loadTeam();
+    </script>
+</body>
+</html>

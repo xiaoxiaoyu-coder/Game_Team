@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>比赛详情</title>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; background: #f5f7fa; }
+        h1 { color: #2c3e50; }
+        h2 { color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 6px; }
+        .card { background: #fff; border-radius: 8px; padding: 14px 18px; margin: 10px 0; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+        .card a { color: #2980b9; text-decoration: none; font-size: 18px; font-weight: bold; }
+        .card a:hover { text-decoration: underline; }
+        .desc { color: #7f8c8d; margin-top: 4px; }
+        .back { color: #2980b9; text-decoration: none; }
+        .back:hover { text-decoration: underline; }
+        #status { color: #e74c3c; }
+    </style>
+</head>
+<body>
+    <p><a class="back" href="index.html">&larr; 返回比赛列表</a></p>
+    <h1 id="match-name">加载中...</h1>
+    <p id="match-desc"></p>
+    <p id="status"></p>
+
+    <h2>参赛战队</h2>
+    <div id="teams"></div>
+
+    <script>
+        const API = 'http://localhost:8080';
+        // 从网址 ?id=1 中取出比赛 ID
+        const matchId = new URLSearchParams(location.search).get('id');
+
+        async function loadMatch() {
+            try {
+                const res = await fetch(API + '/api/match/' + matchId + '/teams');
+                const match = await res.json();
+
+                if (match.error) {
+                    document.getElementById('status').textContent = match.error;
+                    document.getElementById('match-name').textContent = '出错了';
+                    return;
+                }
+
+                document.getElementById('match-name').textContent = '#' + match.id + ' ' + match.name;
+                document.getElementById('match-desc').textContent = match.description;
+                document.title = match.name + ' - 比赛详情';
+
+                document.getElementById('teams').innerHTML = match.teams.map(t =>
+                    `<div class="card">
+                        <a href="team.html?id=${t.id}&match=${match.id}">#${t.id} ${t.name}</a>
+                        <div class="desc">${t.description}</div>
+                    </div>`
+                ).join('') || '<p>该比赛暂无参赛战队</p>';
+            } catch (e) {
+                document.getElementById('status').textContent =
+                    '连接后端失败，请确认 IDEA 中的 WebServer 已运行 (http://localhost:8080)';
+            }
+        }
+
+        loadMatch();
+    </script>
+</body>
+</html>

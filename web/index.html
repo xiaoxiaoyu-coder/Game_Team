@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>游戏比赛管理</title>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; background: #f5f7fa; }
+        h1 { color: #2c3e50; }
+        .card { background: #fff; border-radius: 8px; padding: 14px 18px; margin: 10px 0; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+        .card a { color: #2980b9; text-decoration: none; font-size: 18px; font-weight: bold; }
+        .card a:hover { text-decoration: underline; }
+        .desc { color: #7f8c8d; margin-top: 4px; }
+        #status { color: #e74c3c; }
+    </style>
+</head>
+<body>
+    <h1>比赛列表</h1>
+    <p id="status">正在加载...</p>
+    <div id="matches"></div>
+
+    <script>
+        const API = 'http://localhost:8080';
+
+        async function loadMatches() {
+            try {
+                const res = await fetch(API + '/api/matches');
+                const matches = await res.json();
+
+                document.getElementById('matches').innerHTML = matches.map(m =>
+                    `<div class="card">
+                        <a href="match.html?id=${m.id}">#${m.id} ${m.name}</a>
+                        <div class="desc">${m.description}</div>
+                    </div>`
+                ).join('') || '<p>暂无比赛</p>';
+
+                document.getElementById('status').textContent = '';
+            } catch (e) {
+                document.getElementById('status').textContent =
+                    '连接后端失败，请确认 IDEA 中的 WebServer 已运行 (http://localhost:8080)';
+            }
+        }
+
+        loadMatches();
+    </script>
+</body>
+</html>
